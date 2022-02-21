@@ -133,7 +133,7 @@ var IngestService_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RCAServiceClient interface {
-	Firstview(ctx context.Context, in *RCARequest, opts ...grpc.CallOption) (RCAService_FirstviewClient, error)
+	Firstview(ctx context.Context, in *RCARequest, opts ...grpc.CallOption) (*RCAResponse, error)
 }
 
 type rCAServiceClient struct {
@@ -144,51 +144,28 @@ func NewRCAServiceClient(cc grpc.ClientConnInterface) RCAServiceClient {
 	return &rCAServiceClient{cc}
 }
 
-func (c *rCAServiceClient) Firstview(ctx context.Context, in *RCARequest, opts ...grpc.CallOption) (RCAService_FirstviewClient, error) {
-	stream, err := c.cc.NewStream(ctx, &RCAService_ServiceDesc.Streams[0], "/demo.RCAService/Firstview", opts...)
+func (c *rCAServiceClient) Firstview(ctx context.Context, in *RCARequest, opts ...grpc.CallOption) (*RCAResponse, error) {
+	out := new(RCAResponse)
+	err := c.cc.Invoke(ctx, "/demo.RCAService/Firstview", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &rCAServiceFirstviewClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type RCAService_FirstviewClient interface {
-	Recv() (*RCAResponse, error)
-	grpc.ClientStream
-}
-
-type rCAServiceFirstviewClient struct {
-	grpc.ClientStream
-}
-
-func (x *rCAServiceFirstviewClient) Recv() (*RCAResponse, error) {
-	m := new(RCAResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 // RCAServiceServer is the server API for RCAService service.
 // All implementations should embed UnimplementedRCAServiceServer
 // for forward compatibility
 type RCAServiceServer interface {
-	Firstview(*RCARequest, RCAService_FirstviewServer) error
+	Firstview(context.Context, *RCARequest) (*RCAResponse, error)
 }
 
 // UnimplementedRCAServiceServer should be embedded to have forward compatible implementations.
 type UnimplementedRCAServiceServer struct {
 }
 
-func (UnimplementedRCAServiceServer) Firstview(*RCARequest, RCAService_FirstviewServer) error {
-	return status.Errorf(codes.Unimplemented, "method Firstview not implemented")
+func (UnimplementedRCAServiceServer) Firstview(context.Context, *RCARequest) (*RCAResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Firstview not implemented")
 }
 
 // UnsafeRCAServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -202,25 +179,22 @@ func RegisterRCAServiceServer(s grpc.ServiceRegistrar, srv RCAServiceServer) {
 	s.RegisterService(&RCAService_ServiceDesc, srv)
 }
 
-func _RCAService_Firstview_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(RCARequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _RCAService_Firstview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RCARequest)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(RCAServiceServer).Firstview(m, &rCAServiceFirstviewServer{stream})
-}
-
-type RCAService_FirstviewServer interface {
-	Send(*RCAResponse) error
-	grpc.ServerStream
-}
-
-type rCAServiceFirstviewServer struct {
-	grpc.ServerStream
-}
-
-func (x *rCAServiceFirstviewServer) Send(m *RCAResponse) error {
-	return x.ServerStream.SendMsg(m)
+	if interceptor == nil {
+		return srv.(RCAServiceServer).Firstview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/demo.RCAService/Firstview",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RCAServiceServer).Firstview(ctx, req.(*RCARequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 // RCAService_ServiceDesc is the grpc.ServiceDesc for RCAService service.
@@ -229,13 +203,12 @@ func (x *rCAServiceFirstviewServer) Send(m *RCAResponse) error {
 var RCAService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "demo.RCAService",
 	HandlerType: (*RCAServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams: []grpc.StreamDesc{
+	Methods: []grpc.MethodDesc{
 		{
-			StreamName:    "Firstview",
-			Handler:       _RCAService_Firstview_Handler,
-			ServerStreams: true,
+			MethodName: "Firstview",
+			Handler:    _RCAService_Firstview_Handler,
 		},
 	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "demo.proto",
 }

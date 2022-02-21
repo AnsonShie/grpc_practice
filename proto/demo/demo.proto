@@ -25,5 +25,5 @@ message RCAResponse {
 }
 
 service RCAService {
-  rpc Firstview(RCARequest) returns (stream RCAResponse) {};
+  rpc Firstview(RCARequest) returns (RCAResponse) {};
 }
