@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package demo;
+option go_package = "proto/demo";
+
+message IngestRequest {
+  int64 uuid = 1;
+}
+
+message IngestResponse {
+  string result = 1;
+}
+
+service IngestService {
+  rpc Ingest(IngestRequest) returns (stream IngestResponse) {};
+}
+
+message RCARequest {
+  string customerId = 1;
+  string companyId = 2;
+}
+
+message RCAResponse {
+  string result = 1;
+}
+
+service RCAService {
+  rpc Firstview(RCARequest) returns (stream RCAResponse) {};
+}
