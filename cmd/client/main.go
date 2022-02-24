@@ -20,7 +20,7 @@ func main() {
 	ipMap := map[string]ipInfo{
 		"2.2.2.2": {
 			companyId:  "123",
-			customerId: "456",
+			customerId: "Endpoint2",
 		},
 	}
 
@@ -39,9 +39,10 @@ func main() {
 	defer conn.Close()
 
 	client := demo.NewIngestServiceClient(conn)
+	firstviewClient := demo.NewRCAServiceClient(conn)
 	client2 := demo.NewRCAServiceClient(conn2)
 
-	result := doIngestUnary(client)
+	result := doIngestUnary(client, firstviewClient)
 	for ip := range result {
 		if _, ok := ipMap[ip]; ok {
 			doFirstviewUnary(client2, ipMap[ip])
@@ -61,7 +62,7 @@ func doFirstviewUnary(client demo.RCAServiceClient, info ipInfo) {
 	log.Printf("response from firstview: %v", res)
 }
 
-func doIngestUnary(client demo.IngestServiceClient) <-chan string {
+func doIngestUnary(client demo.IngestServiceClient, firstviewClient demo.RCAServiceClient) <-chan string {
 	ch := make(chan string)
 	req := &demo.IngestRequest{
 		Uuid: 123,
@@ -97,6 +98,7 @@ func doIngestUnary(client demo.IngestServiceClient) <-chan string {
 	go func() {
 		wg.Wait()
 		defer close(ch)
+		doFirstviewUnary(firstviewClient, ipInfo{customerId: "Endpoint1", companyId: "123"})
 	}()
 	return ch
 }

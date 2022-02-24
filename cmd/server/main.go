@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -13,6 +14,20 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+type firstviewServer struct {
+}
+
+func (s *firstviewServer) Firstview(ctx context.Context, req *demo.RCARequest) (*demo.RCAResponse, error) {
+	fmt.Printf("Sum function is invoked with %v \n", req)
+
+	company := req.GetCompanyId()
+	endpoint := req.GetCustomerId()
+
+	return &demo.RCAResponse{
+		Result: fmt.Sprintf("Gen FirstView for company: %s and endpoint: %s", company, endpoint),
+	}, nil
+}
 
 type server struct {
 	ips []string
@@ -64,7 +79,9 @@ func main() {
 	server := server{
 		ips: []string{"1.1.1.1", "2.2.2.2", "3.3.3.3"},
 	}
+	firstviewServer := firstviewServer{}
 	demo.RegisterIngestServiceServer(grpcServer, &server)
+	demo.RegisterRCAServiceServer(grpcServer, &firstviewServer)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v \n", err)
