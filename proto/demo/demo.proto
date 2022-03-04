@@ -27,3 +27,16 @@ message RCAResponse {
 service RCAService {
   rpc Firstview(RCARequest) returns (RCAResponse) {};
 }
+
+message CounterRequest {
+  string uuid = 1;
+  int32 input = 2;
+}
+
+message CounterResponse {
+  int32 sum = 1;
+}
+
+service CounterService {
+  rpc Count(stream CounterRequest) returns (stream CounterResponse) {};
+}

@@ -3,6 +3,7 @@ module github.com/AnsonShie/grpc_practice
 go 1.17
 
 require (
+	github.com/gorilla/websocket v1.5.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	google.golang.org/grpc v1.44.0
 	google.golang.org/protobuf v1.27.1

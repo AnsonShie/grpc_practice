@@ -212,3 +212,119 @@ var RCAService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "demo.proto",
 }
+
+// CounterServiceClient is the client API for CounterService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type CounterServiceClient interface {
+	Count(ctx context.Context, opts ...grpc.CallOption) (CounterService_CountClient, error)
+}
+
+type counterServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewCounterServiceClient(cc grpc.ClientConnInterface) CounterServiceClient {
+	return &counterServiceClient{cc}
+}
+
+func (c *counterServiceClient) Count(ctx context.Context, opts ...grpc.CallOption) (CounterService_CountClient, error) {
+	stream, err := c.cc.NewStream(ctx, &CounterService_ServiceDesc.Streams[0], "/demo.CounterService/Count", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &counterServiceCountClient{stream}
+	return x, nil
+}
+
+type CounterService_CountClient interface {
+	Send(*CounterRequest) error
+	Recv() (*CounterResponse, error)
+	grpc.ClientStream
+}
+
+type counterServiceCountClient struct {
+	grpc.ClientStream
+}
+
+func (x *counterServiceCountClient) Send(m *CounterRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *counterServiceCountClient) Recv() (*CounterResponse, error) {
+	m := new(CounterResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// CounterServiceServer is the server API for CounterService service.
+// All implementations should embed UnimplementedCounterServiceServer
+// for forward compatibility
+type CounterServiceServer interface {
+	Count(CounterService_CountServer) error
+}
+
+// UnimplementedCounterServiceServer should be embedded to have forward compatible implementations.
+type UnimplementedCounterServiceServer struct {
+}
+
+func (UnimplementedCounterServiceServer) Count(CounterService_CountServer) error {
+	return status.Errorf(codes.Unimplemented, "method Count not implemented")
+}
+
+// UnsafeCounterServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to CounterServiceServer will
+// result in compilation errors.
+type UnsafeCounterServiceServer interface {
+	mustEmbedUnimplementedCounterServiceServer()
+}
+
+func RegisterCounterServiceServer(s grpc.ServiceRegistrar, srv CounterServiceServer) {
+	s.RegisterService(&CounterService_ServiceDesc, srv)
+}
+
+func _CounterService_Count_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(CounterServiceServer).Count(&counterServiceCountServer{stream})
+}
+
+type CounterService_CountServer interface {
+	Send(*CounterResponse) error
+	Recv() (*CounterRequest, error)
+	grpc.ServerStream
+}
+
+type counterServiceCountServer struct {
+	grpc.ServerStream
+}
+
+func (x *counterServiceCountServer) Send(m *CounterResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *counterServiceCountServer) Recv() (*CounterRequest, error) {
+	m := new(CounterRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// CounterService_ServiceDesc is the grpc.ServiceDesc for CounterService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var CounterService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "demo.CounterService",
+	HandlerType: (*CounterServiceServer)(nil),
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Count",
+			Handler:       _CounterService_Count_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
+	Metadata: "demo.proto",
+}
