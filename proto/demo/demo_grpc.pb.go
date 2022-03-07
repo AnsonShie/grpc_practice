@@ -218,6 +218,7 @@ var RCAService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CounterServiceClient interface {
 	Count(ctx context.Context, opts ...grpc.CallOption) (CounterService_CountClient, error)
+	EnableMod(ctx context.Context, in *ModRequest, opts ...grpc.CallOption) (*ModResponse, error)
 }
 
 type counterServiceClient struct {
@@ -259,11 +260,21 @@ func (x *counterServiceCountClient) Recv() (*CounterResponse, error) {
 	return m, nil
 }
 
+func (c *counterServiceClient) EnableMod(ctx context.Context, in *ModRequest, opts ...grpc.CallOption) (*ModResponse, error) {
+	out := new(ModResponse)
+	err := c.cc.Invoke(ctx, "/demo.CounterService/EnableMod", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CounterServiceServer is the server API for CounterService service.
 // All implementations should embed UnimplementedCounterServiceServer
 // for forward compatibility
 type CounterServiceServer interface {
 	Count(CounterService_CountServer) error
+	EnableMod(context.Context, *ModRequest) (*ModResponse, error)
 }
 
 // UnimplementedCounterServiceServer should be embedded to have forward compatible implementations.
@@ -272,6 +283,9 @@ type UnimplementedCounterServiceServer struct {
 
 func (UnimplementedCounterServiceServer) Count(CounterService_CountServer) error {
 	return status.Errorf(codes.Unimplemented, "method Count not implemented")
+}
+func (UnimplementedCounterServiceServer) EnableMod(context.Context, *ModRequest) (*ModResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnableMod not implemented")
 }
 
 // UnsafeCounterServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -311,13 +325,36 @@ func (x *counterServiceCountServer) Recv() (*CounterRequest, error) {
 	return m, nil
 }
 
+func _CounterService_EnableMod_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ModRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CounterServiceServer).EnableMod(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/demo.CounterService/EnableMod",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CounterServiceServer).EnableMod(ctx, req.(*ModRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CounterService_ServiceDesc is the grpc.ServiceDesc for CounterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var CounterService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "demo.CounterService",
 	HandlerType: (*CounterServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "EnableMod",
+			Handler:    _CounterService_EnableMod_Handler,
+		},
+	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "Count",

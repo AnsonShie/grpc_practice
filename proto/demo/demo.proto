@@ -35,8 +35,18 @@ message CounterRequest {
 
 message CounterResponse {
   int32 sum = 1;
+  int32 quotient = 2;
+}
+
+message ModRequest {
+  bool enable = 1;
+}
+
+message ModResponse {
+  string response = 1;
 }
 
 service CounterService {
   rpc Count(stream CounterRequest) returns (stream CounterResponse) {};
+  rpc EnableMod(ModRequest) returns (ModResponse) {};
 }

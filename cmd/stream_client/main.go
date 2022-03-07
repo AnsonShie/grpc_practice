@@ -22,20 +22,30 @@ func main() {
 	defer conn.Close()
 
 	client := demo.NewCounterServiceClient(conn)
-	doCount(client)
+	doCount(client, 10)
 
 }
 
-func doCount(client demo.CounterServiceClient) {
+func doCount(client demo.CounterServiceClient, timeout time.Duration) {
 	req := &demo.CounterRequest{
 		Uuid: "c1111111-1111-1111-1111-11111111111d",
 	}
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), timeout*time.Second)
+	defer cancel()
 	stream, err := client.Count(ctx)
+	go func() {
+		time.Sleep(time.Second * 2)
+		resp, err := client.EnableMod(ctx, &demo.ModRequest{Enable: true})
+		if err != nil {
+			log.Fatalf("failed to enable mod: %v", err)
+		} else {
+			fmt.Println(resp.Response)
+		}
+	}()
 	if err != nil {
 		log.Fatal(err)
 	}
-	for i := 1; i <= 10; i = i + 1 {
+	for {
 		rand.Seed(time.Now().UnixNano())
 		req.Input = rand.Int31n(10) + 1
 		stream.Send(req)
@@ -46,17 +56,4 @@ func doCount(client demo.CounterServiceClient) {
 			fmt.Printf("reply : %v\n", reply)
 		}
 	}
-	cancel()
-	for i := 1; i <= 10; i = i + 1 {
-		rand.Seed(time.Now().UnixNano())
-		req.Input = rand.Int31n(10) + 1
-		stream.Send(req)
-		reply, err := stream.Recv()
-		if err != nil {
-			log.Fatal(err)
-		} else {
-			fmt.Printf("reply : %v\n", reply)
-		}
-	}
-
 }
