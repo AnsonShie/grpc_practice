@@ -29,7 +29,6 @@ service RCAService {
 }
 
 message CounterRequest {
-  string uuid = 1;
   int32 input = 2;
 }
 

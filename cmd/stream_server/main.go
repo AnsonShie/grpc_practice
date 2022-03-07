@@ -14,6 +14,7 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -32,6 +33,7 @@ func (s *server) EnableMod(ctx context.Context, req *demo.ModRequest) (*demo.Mod
 }
 
 func (s *server) doMod(ctx context.Context) {
+	fmt.Println("mod goroutine started")
 loop:
 	for {
 		select {
@@ -57,6 +59,8 @@ loop:
 }
 
 func (s *server) Count(stream demo.CounterService_CountServer) error {
+	md, _ := metadata.FromIncomingContext(stream.Context())
+	log.Printf("Metadata received: %v", md)
 	ctx, _ := context.WithTimeout(stream.Context(), time.Second*20)
 loop:
 	for {
