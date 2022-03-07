@@ -38,12 +38,15 @@ loop:
 		case <-ctx.Done():
 			break loop
 		default:
+			if !s.enableMod {
+				break loop
+			}
 			s.RLock()
 			currentSum := s.sum
 			s.RUnlock()
 			if currentSum > s.mod {
 				s.Lock()
-				s.quotient = s.sum / s.mod
+				s.quotient += s.sum / s.mod
 				s.sum = s.sum % s.mod
 				s.Unlock()
 			}

@@ -41,13 +41,27 @@ func doCount(client demo.CounterServiceClient, timeout time.Duration) {
 		} else {
 			fmt.Println(resp.Response)
 		}
+		time.Sleep(time.Second * 2)
+		resp, err = client.EnableMod(ctx, &demo.ModRequest{Enable: false})
+		if err != nil {
+			log.Fatalf("failed to enable mod: %v", err)
+		} else {
+			fmt.Println(resp.Response)
+		}
+		time.Sleep(time.Second * 2)
+		resp, err = client.EnableMod(ctx, &demo.ModRequest{Enable: true})
+		if err != nil {
+			log.Fatalf("failed to enable mod: %v", err)
+		} else {
+			fmt.Println(resp.Response)
+		}
 	}()
 	if err != nil {
 		log.Fatal(err)
 	}
 	for {
 		rand.Seed(time.Now().UnixNano())
-		req.Input = rand.Int31n(10) + 1
+		req.Input = rand.Int31n(100000) + 5
 		stream.Send(req)
 		reply, err := stream.Recv()
 		if err != nil {
@@ -55,5 +69,6 @@ func doCount(client demo.CounterServiceClient, timeout time.Duration) {
 		} else {
 			fmt.Printf("reply : %v\n", reply)
 		}
+		time.Sleep(time.Millisecond * 500)
 	}
 }
